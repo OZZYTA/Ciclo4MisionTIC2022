@@ -15,7 +15,7 @@ const resolvers = {
   },
 //Mutationes
 Mutation: {
-    singUp: async(root,{input},{db})=>{
+    signUp: async(root,{input},{db})=>{
         const hashedPassword=bcrypt.hashSync(input.password)
         const newUser={
             ...input,
@@ -23,19 +23,38 @@ Mutation: {
         }
     const result= await db.collection("user").insertOne(newUser);
     //Funcion asincrona que puede recibir 3 argumentos y regresa un objeto
-    const user=result.ops[0]
     return{
-        user,
+        user:newUser,
         token:"token",
     }
-}
 },
+
+signIn: async(root,{input},{db})=>{
+    const user = await db.collection('user').findOne({ email: input.email });
+    const isPasswordCorrect = user && bcrypt.compareSync(input.password, user.password);
+
+    if (!user || !isPasswordCorrect) {
+      throw new Error('Credenciales erroneas :(');
+    }
+
+    return {
+      user,
+      token: "token",
+    }
+  },
+
+},
+
+
+//Parametro inmutable del user, id:_id
 user:{
 id:(root)=>{
-    return root.Id;
+    return root._id;
 }
 }
 }
+
+
   // The ApolloServer constructor requires two parameters: your schema
 // definition and your set of resolvers.
   
@@ -88,15 +107,21 @@ start();
   }
   
   type Mutation{
-    singUp(input:SingUpInput):AuthUser!
+    signUp(input:SignUpInput):AuthUser!
+    signIn(input:SignInInput):AuthUser!
   }
 
-  input SingUpInput{
+  input SignUpInput{
     mail: String!
     identificacion: String!
     nombre: String!
     password: String!
     rol: String!
+  }
+
+  input SignInInput{
+    mail: String!
+    password: String!
   }
 
   type AuthUser{
