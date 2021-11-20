@@ -1,18 +1,32 @@
 const { ApolloServer, gql } = require('apollo-server');
-const dotenv=require("dotenv")
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
+const dotenv = require('dotenv');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 dotenv.config();
-const {DB_URI,DB_NAME}=process.env;
-const bcrypt=require("bcryptjs")
 
+const { DB_URI, DB_NAME, JWT_SECRET } = process.env;
+const getToken = (user) => jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '30 days' });
+const getUserFromToken = async (token, db) => {
+   // if (!token) { return "OK" }  
+    const tokenData = jwt.verify(token, JWT_SECRET);
+    return await db.collection('user').findOne({ _id: ObjectId(tokenData.id) });
+  }
 
   //
   // Resolvers define the technique for fetching the types defined in the
 // schema. This resolver retrieves books from the "books" array above.
 const resolvers = {
+    //Query: {
+      //misProyectos: () => []
+  //},
     Query: {
-      misProyectos: () => []
-  },
+        myTaskLists: async (_, __, {db})=>{
+            //if(!user){console.log("No esta autenticado, por favor inicie sesión.")}
+            return await db.collection("TaskList").find().toArray();
+        }
+    },
+
 //Mutationes
 Mutation: {
     signUp: async(root,{input},{db})=>{
@@ -25,7 +39,7 @@ Mutation: {
     //Funcion asincrona que puede recibir 3 argumentos y regresa un objeto
     return{
         user:newUser,
-        token:"token",
+        token:getToken(newUser),
     }
 },
 
@@ -39,9 +53,44 @@ signIn: async(root,{input},{db})=>{
 
     return {
       user,
-      token: "token",
+      token: getToken(user),
     }
   },
+
+createTaskList: async(root,{title},{db, user})=>{
+    if(!user){console.log("No esta autenticado, por favor inicie sesión.")}
+
+    const newTaskList={
+        title,
+        createdAt: new Date().toISOString(),
+        userIds:[user._id]
+    }
+    const result= await db.collection("TaskList").insertOne(newTaskList);
+    return newTaskList
+},
+
+updateTaskList : async(_, {id, title}, {db, user}) =>{
+    if(!user){console.log("No esta autenticado, por favor inicie sesión.")}
+
+    const result= await db.collection("TaskList")
+                        .updateOne({_id:ObjectId(id)
+                        },{
+                            $set:{title}
+                        }
+    )
+return await db.collection("TaskList").findOne({_id:ObjectId(id)});
+},
+
+deleteTaskList : async(_, {id}, {db, user}) =>{
+    if(!user){console.log("No esta autenticado, por favor inicie sesión.")}
+
+    await db.collection("TaskList").remove({_id:ObjectId(id)});
+
+    return true;
+},
+
+
+
 
 },
 
@@ -51,23 +100,46 @@ user:{
 id:(root)=>{
     return root._id;
 }
-}
+},
+
+TaskList:{
+    id:(root)=>{
+        return root._id;
+    },
+    progress: ()=>30,
+    
+    users: async({userIds}, _, {db}) => Promise.all(
+        userIds.map((userId) =>(
+            db.collection("user").findOne({_id:userId}))
+        )
+    ),
+
+},
 }
 
 
   // The ApolloServer constructor requires two parameters: your schema
 // definition and your set of resolvers.
   
-  const start= async() =>{
+const start = async () => {
     const client = new MongoClient(DB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
     await client.connect();
-    const db=client.db(DB_NAME)
-
-    const context={
-        db,
-    }
-
-    const server = new ApolloServer({ typeDefs, resolvers, context });
+    const db = client.db(DB_NAME);
+  
+    // The ApolloServer constructor requires two parameters: your schema
+    // definition and your set of resolvers.
+    const server = new ApolloServer({ 
+      typeDefs, 
+      resolvers, 
+      context: async ({ req }) => {
+        const user = await getUserFromToken(req.headers.authorization, db);
+        console.log(user)
+        return {
+          db,
+          user,
+        }
+      },
+    });
 
     // The `listen` method launches a web server.
     server.listen().then(({ url }) => {
@@ -83,7 +155,7 @@ start();
   const typeDefs = gql`
 
   type Query{
-      misProyectos:[proyectos!]!
+      myTaskLists: [TaskList!]!
   }
   
   type user{
@@ -109,6 +181,10 @@ start();
   type Mutation{
     signUp(input:SignUpInput):AuthUser!
     signIn(input:SignInInput):AuthUser!
+
+    createTaskList(title: String!):TaskList!
+    updateTaskList(id:ID!, title:String!):TaskList!
+    deleteTaskList(id:ID!):Boolean!
   }
 
   input SignUpInput{
@@ -128,5 +204,21 @@ start();
       user:user!
       token: String!
   }
+
+  type TaskList{
+    id: ID!
+    createdAt: String!
+    title: String!
+    progress: Float!
+    users: [user!]!
+    todos:[ToDo!]!
+}
+
+type ToDo{
+    id: ID!
+    content: String!
+    isCompleted: Boolean!
+    taskList: TaskList!
+}
   `;
   
