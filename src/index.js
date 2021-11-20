@@ -20,12 +20,13 @@ const resolvers = {
     //Query: {
       //misProyectos: () => []
   //},
-    Query: {
-        myTaskLists: async (_, __, {db})=>{
-            //if(!user){console.log("No esta autenticado, por favor inicie sesión.")}
-            return await db.collection("TaskList").find().toArray();
-        }
+  Query: {
+    myTaskLists: async (_, __, { db }) => {
+      return await db.collection('TaskList')
+                                .find()
+                                .toArray();
     },
+  },
 
 //Mutationes
 Mutation: {
@@ -102,22 +103,17 @@ id:(root)=>{
 }
 },
 
-TaskList:{
-    id:(root)=>{
-        return root._id;
-    },
-    progress: ()=>30,
-    
-    users: async({userIds}, _, {db}) => Promise.all(
-        userIds.map((userId) =>(
-            db.collection("user").findOne({_id:userId}))
-        )
+TaskList: {
+    id: ({ _id, id }) => _id || id,
+    progress: ()  => 30,
+    users: async ({ userIds }, _, { db }) => Promise.all(
+      userIds.map((userId) => (
+        db.collection('user').findOne({ _id: userId}))
+      )
     ),
+  },
 
-},
 }
-
-
   // The ApolloServer constructor requires two parameters: your schema
 // definition and your set of resolvers.
   
@@ -154,8 +150,8 @@ start();
 // your data.
   const typeDefs = gql`
 
-  type Query{
-      myTaskLists: [TaskList!]!
+  type Query {
+    myTaskLists: [TaskList!]!
   }
   
   type user{
