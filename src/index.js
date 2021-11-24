@@ -4,105 +4,111 @@ const dotenv = require('dotenv');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 dotenv.config();
-
 const { DB_URI, DB_NAME, JWT_SECRET } = process.env;
-const getToken = (user) => jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '30 days' });
-const getUserFromToken = async (token, db) => {
-   // if (!token) { return "OK" }  
-    const tokenData = jwt.verify(token, JWT_SECRET);
-    return await db.collection('user').findOne({ _id: ObjectId(tokenData.id) });
-  }
 
-  //
-  // Resolvers define the technique for fetching the types defined in the
-// schema. This resolver retrieves books from the "books" array above.
+//Verificación de Autenticación Por Token
+const getToken = (user) => jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '30 days' });
+
+const getUserFromToken = async (token, db) => {
+  if (!token) { return null }
+  const tokenData = jwt.verify(token, JWT_SECRET);
+  if (!tokenData?.id) {
+    return null;
+  }
+  return await db.collection('user').findOne({ _id: ObjectId(tokenData.id) });
+}
+
+
+//Resolvers
 const resolvers = {
     //Query: {
       //misProyectos: () => []
   //},
   Query: {
-    myTaskLists: async (_, __, { db }) => {
+    myTaskLists: async (_, __, { db, user }) => {  //Ver lista de tareas
+      if (!user) { throw new Error('Error de Autenticación, por favor inicie Sesión'); }
       return await db.collection('TaskList')
-                                .find()
+                                .find({ userIds: user._id })
                                 .toArray();
     },
+
+    getTaskList: async(_, { id }, { db, user }) => {  //Ver tareas por ID
+      if (!user) { throw new Error('Error de Autenticación, por favor inicie Sesión'); }
+      
+      return await db.collection('TaskList').findOne({ _id: ObjectId(id) });
+    }
   },
 
 //Mutationes
 Mutation: {
-    signUp: async(root,{input},{db})=>{
+    signUp: async(root,{input},{db})=>{   //Registrarse
         const hashedPassword=bcrypt.hashSync(input.password)
         const newUser={
             ...input,
             password:hashedPassword,
         }
-    const result= await db.collection("user").insertOne(newUser);
-    //Funcion asincrona que puede recibir 3 argumentos y regresa un objeto
+    const result= await db.collection("user").insertOne(newUser);  //Funcion asincrona que puede recibir 3 argumentos y regresa un objeto
     return{
         user:newUser,
         token:getToken(newUser),
     }
 },
 
-signIn: async(root,{input},{db})=>{
+signIn: async(root,{input},{db})=>{    //Iniciar Sesión
     const user = await db.collection('user').findOne({ email: input.email });
     const isPasswordCorrect = user && bcrypt.compareSync(input.password, user.password);
-
     if (!user || !isPasswordCorrect) {
       throw new Error('Credenciales erroneas :(');
     }
-
     return {
       user,
       token: getToken(user),
     }
   },
 
-createTaskList: async(root,{title},{db, user})=>{
+createTaskList: async(root,{title},{db, user})=>{    //Registrar una tarea
     if(!user){console.log("No esta autenticado, por favor inicie sesión.")}
-
     const newTaskList={
         title,
         createdAt: new Date().toISOString(),
         userIds:[user._id,user.nombre]
     }
+    console.log("Tarea Creada Correctamente")
     const result= await db.collection("TaskList").insertOne(newTaskList);
     return newTaskList
 },
 
-updateTaskList : async(_, {id, title}, {db, user}) =>{
+updateTaskList : async(_, {id, title}, {db, user}) =>{   //Actualizar una tarea
     if(!user){console.log("No esta autenticado, por favor inicie sesión.")}
-
     const result= await db.collection("TaskList")
                         .updateOne({_id:ObjectId(id)
                         },{
                             $set:{title}
                         }
     )
+console.log("Tarea Actualizada Correctamente")
 return await db.collection("TaskList").findOne({_id:ObjectId(id)});
 },
 
-deleteTaskList : async(_, {id}, {db, user}) =>{
+deleteTaskList : async(_, {id}, {db, user}) =>{   //Eliminar una tarea
     if(!user){console.log("No esta autenticado, por favor inicie sesión.")}
 
     await db.collection("TaskList").remove({_id:ObjectId(id)});
-
+    console.log("Tarea Eliminada Correctamente")
     return true;
 },
 
-
-
-
 },
 
 
-//Parametro inmutable del user, id:_id
+//Parametros inmutables del user
 user:{
 id:(root)=>{
     return root._id;
 }
 },
 
+//Parametros inmutables de los tasklist
 TaskList: {
     id: ({ _id, id }) => _id || id,
     progress: ()  => 30,
@@ -114,17 +120,13 @@ TaskList: {
   },
 
 }
-  // The ApolloServer constructor requires two parameters: your schema
-// definition and your set of resolvers.
-  
-const start = async () => {
+
+const start = async () => {   //Iniciar Serviror
     const client = new MongoClient(DB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
     await client.connect();
     const db = client.db(DB_NAME);
   
-    // The ApolloServer constructor requires two parameters: your schema
-    // definition and your set of resolvers.
-    const server = new ApolloServer({ 
+    const server = new ApolloServer({   //Contextos del servidor(necesarios)
       typeDefs, 
       resolvers, 
       context: async ({ req }) => {
@@ -137,21 +139,20 @@ const start = async () => {
       },
     });
 
-    // The `listen` method launches a web server.
+    // Metodo listen, servidor iniciado
     server.listen().then(({ url }) => {
     console.log(`🚀  Server ready at ${url}`);
     });
   }  
-start();
+start();  //Arrancamos!
 
 
-  // A schema is a collection of type definitions (hence "typeDefs")
-// that together define the "shape" of queries that are executed against
-// your data.
-  const typeDefs = gql`
+  //Esquemas para GRAPHL vs MongoDB
+  const typeDefs = gql`   
 
   type Query {
     myTaskLists: [TaskList!]!
+    getTaskList(id: ID!): TaskList
   }
   
   type user{
