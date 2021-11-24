@@ -132,15 +132,15 @@ const start = async () => {   //Iniciar Serviror
         const user = await getUserFromToken(req.headers.authorization, db);
         //console.log(user)
         return {
-          db,
-          user,
+          db,  //base de datos como contexto
+          user,  //usuario autenticado como contexto
         }
       },
     });
 
     // Metodo listen, servidor iniciado
     server.listen().then(({ url }) => {
-    console.log(`🚀  Server ready at ${url}`);
+    console.log(`🚀  Servidor listo y corriendo en ${url}`);
     });
   }  
 start();  //Arrancamos!
