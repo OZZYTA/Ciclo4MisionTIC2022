@@ -64,7 +64,7 @@ createTaskList: async(root,{title},{db, user})=>{
     const newTaskList={
         title,
         createdAt: new Date().toISOString(),
-        userIds:[user._id]
+        userIds:[user._id,user.nombre]
     }
     const result= await db.collection("TaskList").insertOne(newTaskList);
     return newTaskList
@@ -107,8 +107,8 @@ TaskList: {
     id: ({ _id, id }) => _id || id,
     progress: ()  => 30,
     users: async ({ userIds }, _, { db }) => Promise.all(
-      userIds.map((userId) => (
-        db.collection('user').findOne({ _id: userId}))
+      userIds.map(() => (
+          db.collection('user').findOne({ _id: userIds[0]}))
       )
     ),
   },
@@ -129,7 +129,7 @@ const start = async () => {
       resolvers, 
       context: async ({ req }) => {
         const user = await getUserFromToken(req.headers.authorization, db);
-        console.log(user)
+        //console.log(user)
         return {
           db,
           user,
