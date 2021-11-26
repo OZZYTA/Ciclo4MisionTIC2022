@@ -41,6 +41,8 @@ const resolvers = {
   },
 
 //Mutationes
+
+//Atenticación y uso
 Mutation: {
     signUp: async(root,{input},{db})=>{   //Registrarse
         const hashedPassword=bcrypt.hashSync(input.password) //hasheamos la contraseña que viene desde el input
@@ -67,6 +69,8 @@ signIn: async(root,{input},{db})=>{    //Iniciar Sesión
     }
   },
 
+
+  //lista de tareas
 createTaskList: async(root,{title},{db, user})=>{    //Registrar una tarea
     if(!user){console.log("No esta autenticado, por favor inicie sesión.")} //Solo usuarios correctamente logueados lo pueden hacer
     const newTaskList={  //Creamos un nuevo documento de tipo tasklis que tenga: titulo, fecha de creacion y un arreglo con userId y nombre del usuario
@@ -126,6 +130,42 @@ addUserToTaskList: async(_, { taskListId, userId }, { db, user }) => { //Agregar
   return taskList;
 },
 
+
+//ToDO (Avances)
+createToDo: async(_, { content, taskListId }, { db, user }) => { //Crear subtarea que tiene como argumento un contenido, el id de la tarea.
+  if(!user){console.log("No esta autenticado, por favor inicie sesión.")}  //Solo usuarios correctamente logueados lo pueden hacer
+  const newToDo = {
+    content, 
+    taskListId: ObjectId(taskListId),
+    isCompleted: false, //pendiente del valor por defecto
+  }
+  const result = await db.collection('ToDo').insertOne(newToDo); 
+  return newToDo;
+},
+
+updateToDo: async(_, data, { db, user }) => {  //Data como argumento, cualquier valor es editable, los otros se conservan
+  if(!user){console.log("No esta autenticado, por favor inicie sesión.")}  //Solo usuarios correctamente logueados lo pueden hacer
+
+  const result = await db.collection('ToDo')
+                        .updateOne({
+                          _id: ObjectId(data.id)
+                        }, {
+                          $set: data   //Setear la data que se encuentra en el data del front/apollo
+                        })
+  
+  return await db.collection('ToDo').findOne({ _id: ObjectId(data.id) });
+},
+
+deleteToDo: async(_, { id }, { db, user }) => {   //eliminar
+  if(!user){console.log("No esta autenticado, por favor inicie sesión.")}  //Solo usuarios correctamente logueados lo pueden hacer
+  
+  // TODO only collaborators of this task list should be able to delete
+  await db.collection('ToDo').deleteOne({ _id: ObjectId(id) });
+
+  return true;
+},
+
+
 },
 
 
@@ -138,15 +178,35 @@ id:(root)=>{
 //Parametros inmutables de los tasklist
 TaskList: {
     id: ({ _id, id }) => _id || id, //id del objeto sera automaticamente el valor de _id
-    progress: ()  => 30, //funcion a cambiar en clases
+    progress: async ({ _id }, _, { db })  => {
+      const todos = await db.collection('ToDo').find({ taskListId: ObjectId(_id)}).toArray()
+      const completed = todos.filter(todo => todo.isCompleted);
+      if (todos.length === 0) {
+        return 0;
+      }
+      return 100 * completed.length / todos.length
+    }, //funcion a cambiar en clases
     users: async ({ userIds }, _, { db }) => Promise.all( //Función asincronica que se compromete a traer todos los usuarios relacionados con la tasklist 
       userIds.map((userId) => (  
         db.collection('user').findOne({ _id: userId})) //Consulta usuarios por Id
       )
     ),
+    todos: async ({ _id }, _, { db }) => (
+      await db.collection('ToDo').find({ taskListId: ObjectId(_id)}).toArray()
+    ), 
+  },
+
+
+    //Parametros inmutables de los ToDo
+  ToDo: {
+    id: ({ _id, id }) => _id || id,
+    taskList: async ({ taskListId }, _, { db }) => (
+      await db.collection('TaskList').findOne({ _id: ObjectId(taskListId) })
+    )
   },
 }
 
+//SERVER
 const start = async () => {   //Iniciar Serviror
     const client = new MongoClient(DB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
     await client.connect();
@@ -209,6 +269,10 @@ start();  //Arrancamos!
     updateTaskList(id:ID!, title:String!):TaskList!
     deleteTaskList(id:ID!):Boolean!
     addUserToTaskList(taskListId: ID!, userId: ID!): TaskList
+
+    createToDo(content: String!, taskListId: ID!): ToDo!
+    updateToDo(id: ID!, content: String, isCompleted: Boolean): ToDo!
+    deleteToDo(id: ID!): Boolean!
   }
 
   input SignUpInput{
@@ -244,5 +308,4 @@ type ToDo{
     isCompleted: Boolean!
     taskList: TaskList!
 }
-  `;
-  
+  `;  
