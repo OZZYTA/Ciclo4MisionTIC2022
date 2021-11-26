@@ -72,7 +72,8 @@ createTaskList: async(root,{title},{db, user})=>{    //Registrar una tarea
     const newTaskList={  //Creamos un nuevo documento de tipo tasklis que tenga: titulo, fecha de creacion y un arreglo con userId y nombre del usuario
         title,
         createdAt: new Date().toISOString(),
-        userIds:[user._id,user.nombre] //userIds es un arreglo con dos campos: _id, nombre
+        userIds:[user._id], //Crea un arreglo donde se guardaran los ID de los usuarios relacionados
+        userNames: [user.nombre]//Crea un arreglo donde se guardaran los Nombres de los usuarios relacionados
     }
     console.log("Tarea Creada Correctamente") //mensaje de consola
     const result= await db.collection("TaskList").insertOne(newTaskList); //guardar el documento en la coleccion corespondiente
@@ -99,6 +100,9 @@ deleteTaskList : async(_, {id}, {db, user}) =>{   //Eliminar una tarea, mutacion
     console.log("Tarea Eliminada Correctamente")
     return true; //regresa booleano
 },
+
+
+
 },
 
 
@@ -112,9 +116,9 @@ id:(root)=>{
 TaskList: {
     id: ({ _id, id }) => _id || id, //id del objeto sera automaticamente el valor de _id
     progress: ()  => 30, //funcion a cambiar en clases
-    users: async ({ userIds }, _, { db }) => Promise.all(  //asigna el valor de todos los usuarios relacionados con la tarea
-      userIds.map(() => (
-          db.collection('user').findOne({ _id: userIds[0]}))  //usa solo el campo 0 del arreglo usersIds para hacer la consulta en mongodb
+    users: async ({ userIds }, _, { db }) => Promise.all( //Función asincronica que se compromete a traer todos los usuarios relacionados con la tasklist 
+      userIds.map((userId) => (  
+        db.collection('user').findOne({ _id: userId})) //Consulta usuarios por Id
       )
     ),
   },
@@ -181,6 +185,7 @@ start();  //Arrancamos!
     createTaskList(title: String!):TaskList!
     updateTaskList(id:ID!, title:String!):TaskList!
     deleteTaskList(id:ID!):Boolean!
+    addUserToTaskList(taskListId: ID!, userId: ID!): TaskList
   }
 
   input SignUpInput{
