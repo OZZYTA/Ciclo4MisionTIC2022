@@ -35,7 +35,6 @@ const resolvers = {
 
     getTaskList: async(_, { id }, { db, user }) => {  //Ver tareas por ID
       if (!user) { throw new Error('Error de Autenticación, por favor inicie Sesión'); }
-      
       return await db.collection('TaskList').findOne({ _id: ObjectId(id) });
     }
   },
@@ -102,9 +101,58 @@ deleteTaskList : async(_, {id}, {db, user}) =>{   //Eliminar una tarea, mutacion
 },
 
 
+addUserToTaskList: async(_, {taskListId , userId}, {db,user}) =>{
+  if(!user){console.log("No esta autenticado, por favor inicie sesión.")}  //Solo usuarios correctamente logueados lo pueden hacer
+  const taskList= await db.collection("TaskList").findOne({_id:ObjectId(taskListId)});
+  const usuario= await db.collection("user").findOne({_id:ObjectId(userId)});
 
+  if(!taskList){
+    return null; //Cambiar respuesta a su gusto
+  }
+ 
+  if(taskList.userIds.find((dbId) => dbId.toString()=== userId.toString())){
+    return taskList;  //Evitamos duplicidad verificando la existencia previa del usuario
+  }
+  await db.collection("TaskList")
+          .updateOne({  //busca la tasklist a actualizar
+          _id:ObjectId(taskListId)
+        }, { 
+          $push: {
+            userIds: ObjectId(userId),  //empuja el objectid(userId) al arreglo userIds
+            userNames:usuario.nombre,  //empuja el nombre del usuario al arreglo usernames
+          }
+        })  
+        taskList.userIds.push(ObjectId(userId))  //Confirmación
+        taskList.userNames.push(usuario.nombre)  //confirmación
+        return taskList;
 },
 
+//ToDos (avances)
+createToDo: async(root,{content, taskListId}, {db, user})=>{
+if(!user){console.log("No esta autenticado, por favor inicie sesión.")}  //Solo usuarios correctamente logueados lo pueden hacer
+const newToDo ={
+  content,
+  taskListId: ObjectId(taskListId),
+  isCompleted: false,
+}
+const result= await db.collection("ToDo").insertOne(newToDo);
+return newToDo;
+},
+
+updateToDo: async (_, data, {db, user})=>{
+  if(!user){console.log("No esta autenticado, por favor inicie sesión.")}  //Solo usuarios correctamente logueados lo pueden hacer
+
+  const result= await db.collection("ToDo")
+                        .updateOne({_id:ObjectId(data.id)
+                        }, {
+                          $set: data
+                        })
+  return await db.collection("ToDo").findOne({_id:ObjectId(data.id)});
+},
+
+
+
+},
 
 //Parametros inmutables del user
 user:{
@@ -115,13 +163,35 @@ id:(root)=>{
 //Parametros inmutables de los tasklist
 TaskList: {
     id: ({ _id, id }) => _id || id, //id del objeto sera automaticamente el valor de _id
-    progress: ()  => 30, //funcion a cambiar en clases
+    progress: async ({_id}, _, {db}) =>{
+      const todos= await db.collection("ToDo").find({taskListId: ObjectId(_id)}).toArray()
+      const completed= todos.filter(todo =>todo.isCompleted);
+      if (todos.length===0){
+        return 0;
+      }
+      return (completed.length/todos.length)*100
+    },
+
     users: async ({ userIds }, _, { db }) => Promise.all( //Función asincronica que se compromete a traer todos los usuarios relacionados con la tasklist 
       userIds.map((userId) => (  
         db.collection('user').findOne({ _id: userId})) //Consulta usuarios por Id
       )
     ),
+    todos: async ({_id}, _, {db})=>(
+      await db.collection("ToDo").find({taskListId:ObjectId(_id)}).toArray()
+    ),
   },
+
+
+//Parametros inmutables del user
+ToDo:{
+  id:(root)=>{
+    return root._id;},
+  taskList: async ({taskListId}, _, {db}) =>(
+  await db.collection("TaskList").findOne({_id:ObjectId(taskListId)})
+  )
+},
+
 }
 
 const start = async () => {   //Iniciar Serviror
@@ -186,6 +256,9 @@ start();  //Arrancamos!
     updateTaskList(id:ID!, title:String!):TaskList!
     deleteTaskList(id:ID!):Boolean!
     addUserToTaskList(taskListId: ID!, userId: ID!): TaskList
+
+    createToDo(content:String!, taskListId:ID!):ToDo!
+    updateToDo(id:ID!,content:String, isCompleted:Boolean):ToDo!
   }
 
   input SignUpInput{
