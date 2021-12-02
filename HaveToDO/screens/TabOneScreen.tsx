@@ -1,18 +1,38 @@
 import React, {useState} from 'react';
-import { StyleSheet, TextInput } from 'react-native';
+import { FlatList, StyleSheet, TextInput } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Text, View } from '../components/Themed';
 import ToDoItem from '../components/ToDoItem';
 
 export default function TabOneScreen() {
-  const [value, setValue]=useState(false)
+  const [todos, setTodos]=useState([{
+    id: '1',
+    content: "Instalar Expo",
+    isCompleted: true
+  },{
+    id: '1',
+    content: "Hacer Screens",
+    isCompleted: true
+  },{
+    id: '1',
+    content: "Consumir nuestro API",
+    isCompleted: false
+  },{
+    id: '1',
+    content: "Desplegar nuestro sitio",
+    isCompleted: false
+  }])
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Lista de Tareas</Text>
+      <Text style={styles.title}>Lista de Avances</Text>
 
-      <ToDoItem/>
-      <ToDoItem/>
-      <ToDoItem/>
+      <FlatList
+      data={todos}
+      renderItem={({item})=> <ToDoItem todo={item} />}
+      style={{
+        width:"100%"
+      }}
+      />
     </View>
   );
 }
