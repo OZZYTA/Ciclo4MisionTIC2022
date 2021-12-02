@@ -1,10 +1,14 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import { FlatList, StyleSheet, TextInput } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Text, View } from '../components/Themed';
 import ToDoItem from '../components/ToDoItem';
 
+
+let id: "4"
+
 export default function TabOneScreen() {
+  const [title, setTitle]=useState("")
   const [todos, setTodos]=useState([{
     id: '1',
     content: "Instalar Expo",
@@ -22,13 +26,30 @@ export default function TabOneScreen() {
     content: "Desplegar nuestro sitio",
     isCompleted: false
   }])
+
+  const createNewItem= (atIndex: number) =>{
+    const newTodos=[...todos];
+    newTodos.splice(atIndex,0,{
+      id:id,
+      content:"",
+      isCompleted: false,
+    })
+    setTodos(newTodos)
+  }
+
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Lista de Avances</Text>
+      <TextInput 
+      value={title}
+      onChangeText={setTitle} 
+      style={styles.title}
+      placeholder={"Titulo Aquí"}>       
+      </TextInput>
 
       <FlatList
       data={todos}
-      renderItem={({item})=> <ToDoItem todo={item} />}
+      renderItem={({item, index})=> <ToDoItem todo={item} onSumbit={() =>createNewItem(index+1)} />}
       style={{
         width:"100%"
       }}
@@ -46,11 +67,15 @@ const styles = StyleSheet.create({
   
   title: {
     fontSize: 20,
+    borderColor:"white",
+    borderRadius:2,
     fontWeight: 'bold',
-    alignItems: 'center',
+    textAlign:"center",
     padding: 5,
-    width:"50%",
-    marginHorizontal:"40%"
+    color:"white",
+    width:"80%",
+    marginHorizontal:"10%",
+    marginBottom:30
   },
   separator: {
     marginVertical: 30,
