@@ -1,32 +1,77 @@
 import * as React from 'react';
-import { StyleSheet } from 'react-native';
+import { FlatList, StyleSheet } from 'react-native';
+import ProjectItem from '../components/ProjectItem';
 
 import EditScreenInfo from '../components/EditScreenInfo';
 import { Text, View } from '../components/Themed';
+import { useState } from 'react';
 
 export default function TabTwoScreen() {
+  const [project, setProject]=useState([{
+    id: '1',
+    title: "Instalar Expo",
+    createdAt: "2021-12-01"
+  },{
+    id: '1',
+    title: "Diseñar Screens",
+    createdAt: "2021-12-01"
+  },{
+    id: '1',
+    title: "Auth",
+    createdAt: "2021-12-02"
+  },{
+    id: '1',
+    title: "Despliegue",
+    createdAt: "2021-12-02"
+  }])
+
+
+
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab Two</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="/screens/TabTwoScreen.tsx" />
+      <Text style={styles.title}>LISTA DE TAREAS/PROYECTOS</Text>
+      <FlatList
+        data={project}
+        renderItem={({item}) => <ProjectItem project={item} />}
+        style={{ width: '100%' }}
+      />
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    alignItems: 'center',
+    padding: 12,
+    width:"80%",
+    marginHorizontal:"10%"
+  },
+  root: {
+    flexDirection: 'row',
+    width: '100%',
+    padding: 10,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
     justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 5,
+    backgroundColor: '#404040',
+    marginRight: 10,
   },
   title: {
     fontSize: 20,
+    borderColor:"white",
+    borderRadius:2,
     fontWeight: 'bold',
+    textAlign:"center",
+    padding: 5,
+    color:"white",
+    width:"80%",
+    marginHorizontal:"10%",
+    marginBottom:30
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
-  },
+  time: {
+    color: 'darkgrey'
+  }
 });
