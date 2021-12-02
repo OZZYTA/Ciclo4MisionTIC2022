@@ -12,12 +12,13 @@ import { ColorSchemeName, Pressable } from 'react-native';
 
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
-import ModalScreen from '../screens/ModalScreen';
+import ModalScreen from '../screens/InformationScreen';
 import NotFoundScreen from '../screens/NotFoundScreen';
-import TabOneScreen from '../screens/TabOneScreen';
-import TabTwoScreen from '../screens/TabTwoScreen';
+import ToDoScreen from '../screens/ToDoScreen';
 import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
+import ProjectsScreen from '../screens/ProjectsScreen';
+import SignInScreen from '../screens/SignInScreen';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
@@ -40,8 +41,11 @@ function RootNavigator() {
     <Stack.Navigator>
       <Stack.Screen name="Root" component={BottomTabNavigator} options={{ headerShown: false }} />
       <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
+      <Stack.Screen name="Home" component={ProjectsScreen} />
+      <Stack.Screen name="ToDoScreen" component={ToDoScreen} />
+      <Stack.Screen name="SignInScreen" component={SignInScreen} />
       <Stack.Group screenOptions={{ presentation: 'modal' }}>
-        <Stack.Screen name="Modal" component={ModalScreen} />
+        <Stack.Screen name="Información" component={ModalScreen} />
       </Stack.Group>
     </Stack.Navigator>
   );
@@ -64,13 +68,13 @@ function BottomTabNavigator() {
       }}>
       <BottomTab.Screen
         name="TabOne"
-        component={TabOneScreen}
+        component={ProjectsScreen}
         options={({ navigation }: RootTabScreenProps<'TabOne'>) => ({
-          title: 'To Do',
+          title: 'Proyectos',
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
           headerRight: () => (
             <Pressable
-              onPress={() => navigation.navigate('Modal')}
+              onPress={() => navigation.navigate('Información')}
               style={({ pressed }) => ({
                 opacity: pressed ? 0.5 : 1,
               })}>
@@ -86,9 +90,9 @@ function BottomTabNavigator() {
       />
       <BottomTab.Screen
         name="TabTwo"
-        component={TabTwoScreen}
+        component={SignInScreen}
         options={{
-          title: 'TaskLists',
+          title: 'Avances',
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
         }}
       />

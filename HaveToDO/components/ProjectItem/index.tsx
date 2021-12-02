@@ -16,7 +16,7 @@ const ProjectItem = ({ project }: ProjectItemProps) => {
   const navigation = useNavigation();
 
   const onPress = () => {
-   /* navigation.navigate('TabOne', { id: project.id })*/
+    navigation.navigate('ToDoScreen', { id:project.id} )
   }
   
   return (

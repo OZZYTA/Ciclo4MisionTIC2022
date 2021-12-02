@@ -20,7 +20,7 @@ mutation SignIn($email:String!, $password:String!){
 }
 */
 
-export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'>) {
+const SignInScreen =() => {
   const [email, setEmail]=useState("")
   const [password, setPassword]=useState("")
   const navegation= useNavigation();
@@ -29,7 +29,10 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
 
   return (
     <View style={{padding:20}}>
-      {/*<Text>Lista de Tareas</Text>*/}
+      <Text style={{
+          alignSelf:"center",
+          fontSize:25
+      }}>Inicio de Sesión</Text>
       <TextInput
       placeholder="Email Aqui!"
       value={email}
@@ -106,4 +109,4 @@ export default function TabOneScreen({ navigation }: RootTabScreenProps<'TabOne'
   
 }
 
-//export default TabOneScreen
+export default SignInScreen
