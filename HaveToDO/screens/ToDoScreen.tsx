@@ -1,7 +1,6 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useState} from 'react';
 import { FlatList, StyleSheet, TextInput } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Text, View } from '../components/Themed';
+import { View } from '../components/Themed';
 import ToDoItem from '../components/ToDoItem';
 
 

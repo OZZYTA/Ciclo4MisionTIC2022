@@ -1,6 +1,5 @@
 import React, { useState, useEffect , useRef} from "react";
-import {View, Text, TextInput, Pressable, Button} from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import {View, TextInput} from "react-native";
 import Checkbox from "../Checkbox";
 import alert from "../Alert";
 
@@ -58,7 +57,7 @@ const onKeyPress = ({ nativeEvent })=>{
         height:50,
         flex:1,
         fontSize:18,
-        backgroundColor:"#282828",
+        backgroundColor:"#2B4055",
         color:"white",
         marginLeft:12,
         

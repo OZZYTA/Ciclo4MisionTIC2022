@@ -1,8 +1,6 @@
 import * as React from 'react';
 import { FlatList, StyleSheet } from 'react-native';
 import ProjectItem from '../components/ProjectItem';
-
-import EditScreenInfo from '../components/EditScreenInfo';
 import { Text, View } from '../components/Themed';
 import { useState } from 'react';
 

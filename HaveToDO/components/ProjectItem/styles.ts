@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 5,
-    backgroundColor: '#404040',
+    backgroundColor: '#2B4055',
     marginRight: 10,
   },
   title: {
@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 1,
-    backgroundColor: '#404040',
+    backgroundColor: '#2B4055',
     marginLeft: 5,
     flexDirection: "row",
     height:20

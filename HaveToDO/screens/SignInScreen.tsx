@@ -1,10 +1,8 @@
 import { useNavigation } from '@react-navigation/native';
 import * as React from 'react';
 import { useState } from 'react';
-import { Pressable, StyleSheet, TextInput } from 'react-native';
-import EditScreenInfo from '../components/EditScreenInfo';
+import { Pressable, TextInput } from 'react-native';
 import { Text, View } from '../components/Themed';
-import { RootTabScreenProps } from '../types';
 
 /*import {useMutation, gql} from '@apollo/cliente',
 const SIGN_IN_MUTATION= gql`
@@ -25,13 +23,18 @@ const SignInScreen =() => {
   const [password, setPassword]=useState("")
   const navegation= useNavigation();
 
+  const onSubmit = () =>{
+//On submit
+  }
+
  // const [singIn, {data, error, loading}]=useMutation(SIGN_IN_MUTATION)
 
   return (
     <View style={{padding:20}}>
       <Text style={{
           alignSelf:"center",
-          fontSize:25
+          fontSize:25,
+          fontWeight:"bold"
       }}>Inicio de Sesión</Text>
       <TextInput
       placeholder="Email Aqui!"
@@ -62,7 +65,7 @@ const SignInScreen =() => {
     />
 
 <Pressable
-//onPress={() =>  {console.warn('navigate'); navegation.navigate('SignUp')}}
+onPress={onSubmit} 
   style={{
     backgroundColor:'#004080',
     height:50,
@@ -85,6 +88,7 @@ const SignInScreen =() => {
   </Pressable>
 
   <Pressable
+  onPress={() => navegation.navigate("SignUp")}
     style={{
       height:50,
       alignItems:"center",
@@ -109,4 +113,4 @@ const SignInScreen =() => {
   
 }
 
-export default SignInScreen
+export default SignInScreen;
