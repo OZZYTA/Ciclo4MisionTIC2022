@@ -1,33 +1,49 @@
 import { useNavigation } from '@react-navigation/native';
 import * as React from 'react';
-import { useState } from 'react';
-import { Pressable, TextInput } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, TextInput } from 'react-native';
 import { Text, View } from '../components/Themed';
+import { useMutation, gql } from '@apollo/client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-/*import {useMutation, gql} from '@apollo/cliente',
-const SIGN_IN_MUTATION= gql`
-mutation SignIn($email:String!, $password:String!){
-  signUp(input:{email:$email, password:$password}){
+const SIGN_IN_MUTATION = gql`
+mutation singIn($mail:String!,$password:String!){
+  signIn(input: {
+    mail:$mail,
+    password:$password,
+  }) {
     token
-    user{
+    user {
       id
       nombre
-      email
     }
   }
-}
-*/
+  }
+`;
 
 const SignInScreen =() => {
-  const [email, setEmail]=useState("")
+  const [mail, setMail]=useState("")
   const [password, setPassword]=useState("")
   const navegation= useNavigation();
 
-  const onSubmit = () =>{
-//On submit
+  const [signIn, { data, error, loading }] = useMutation(SIGN_IN_MUTATION);
+
+  useEffect(() => {
+    if (error) {
+      Alert.alert('Invalid credentials, try again');
+    }
+  }, [error])
+
+  if (data) {
+    AsyncStorage.setItem('token', data.signIn.token)
+      .then(() => {
+        navegation.navigate("Home")
+      })
   }
 
- // const [singIn, {data, error, loading}]=useMutation(SIGN_IN_MUTATION)
+  const onSubmit = () => {
+    signIn({ variables: { mail, password }})
+  }
 
   return (
     <View style={{padding:20}}>
@@ -38,10 +54,10 @@ const SignInScreen =() => {
       }}>Inicio de Sesión</Text>
       <TextInput
       placeholder="Email Aqui!"
-      value={email}
-      onChangeText={setEmail}
+      value={mail}
+      onChangeText={setMail}
       style={{
-        color:"black",
+        color:"white",
         fontSize:18,
         marginVertical:25,
         width:'50%',
@@ -56,7 +72,7 @@ const SignInScreen =() => {
     onChangeText={setPassword}
     secureTextEntry
     style={{
-      color:"black",
+      color:"white",
       fontSize:18,
       marginVertical:25,
       width:'50%',
@@ -97,6 +113,7 @@ onPress={onSubmit}
       width:'50%',
       marginHorizontal:"25%",
     }}>
+      {loading && <ActivityIndicator />}
         <Text
         style={{
           color:"#004080",

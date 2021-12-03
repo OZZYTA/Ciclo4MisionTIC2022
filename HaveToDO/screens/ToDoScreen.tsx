@@ -1,12 +1,20 @@
 import React, {useState} from 'react';
-import { FlatList, StyleSheet, TextInput } from 'react-native';
-import { View } from '../components/Themed';
+import { FlatList, Pressable, StyleSheet, TextInput } from 'react-native';
+import { View, Text } from '../components/Themed';
 import ToDoItem from '../components/ToDoItem';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 
 
 let id: "4"
 
 export default function ToDoScreen() {
+  const navegation= useNavigation();
+  const logOut = async () => {
+    await AsyncStorage.getItem('token');
+    navegation.navigate("SignIn")
+  }
+
   const [title, setTitle]=useState("")
   const [todos, setTodos]=useState([{
     id: '1',
@@ -38,22 +46,45 @@ export default function ToDoScreen() {
 
 
   return (
-    <View style={styles.container}>
-      <TextInput 
-      value={title}
-      onChangeText={setTitle} 
-      style={styles.title}
-      placeholder={"Titulo Aquí"}>       
+    <><View style={styles.container}>
+      <TextInput
+        value={title}
+        onChangeText={setTitle}
+        style={styles.title}
+        placeholder={"Titulo Aquí"}>
       </TextInput>
 
       <FlatList
-      data={todos}
-      renderItem={({item, index})=> <ToDoItem todo={item} onSumbit={() =>createNewItem(index+1)} />}
-      style={{
-        width:"100%"
-      }}
-      />
+        data={todos}
+        renderItem={({ item, index }) => <ToDoItem todo={item} onSumbit={() => createNewItem(index + 1)} />}
+        style={{
+          width: "100%"
+        }} />
     </View>
+    <View>
+    <Pressable
+      onPress={logOut} 
+      style={{
+        backgroundColor:'#004080',
+        height:50,
+        borderRadius:5,
+        alignItems:'center',
+        justifyContent:"center",
+        marginTop:30,
+        width:'10%',
+        marginHorizontal:"5%",
+      }}>  
+      <Text
+        style={{
+          color:"white",
+          fontSize:18,
+          fontWeight:"bold"
+        }}>
+          Cerrar Sesión
+        </Text>
+      </Pressable>
+
+      </View></>
   );
 }
 
