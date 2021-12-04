@@ -1,78 +1,103 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import { FlatList, Pressable, StyleSheet, TextInput } from 'react-native';
 import { View, Text } from '../components/Themed';
 import ToDoItem from '../components/ToDoItem';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { gql, useMutation, useQuery } from '@apollo/client';
+import { AntDesign } from '@expo/vector-icons';
 
+const GET_PROJECT = gql`
+query getTaslist($id:ID!) {
+  getTaskList(id:$id) {
+    id
+    title
+    createdAt
+    todos {
+      id
+      content
+      isCompleted
+    }
+  }
+}
+`
 
-let id: "4"
+const CREATE_TODO = gql`
+mutation createToDo($content:String!, $taskListId: ID!) {
+  createToDo(content: $content, taskListId: $taskListId) {
+    id
+		content
+    isCompleted
+    taskList {
+      id
+      progress
+      todos {
+        id
+        content
+        isCompleted
+      }
+    }
+  }
+}
+`
+
 
 export default function ToDoScreen() {
-  const navegation= useNavigation();
+  const navegation=useNavigation();
   const logOut = async () => {
-    await AsyncStorage.getItem('token');
+    await AsyncStorage.removeItem('token');
     navegation.navigate("SignIn")
   }
+  const [project, setProject] = useState(null);
+  const [title, setTitle] = useState('');
 
-  const [title, setTitle]=useState("")
-  const [todos, setTodos]=useState([{
-    id: '1',
-    content: "Instalar Expo",
-    isCompleted: true
-  },{
-    id: '1',
-    content: "Hacer Screens",
-    isCompleted: true
-  },{
-    id: '1',
-    content: "Consumir nuestro API",
-    isCompleted: false
-  },{
-    id: '1',
-    content: "Desplegar nuestro sitio",
-    isCompleted: false
-  }])
+  const route = useRoute();
+  const id = route.params.id;
 
-  const createNewItem= (atIndex: number) =>{
-    const newTodos=[...todos];
-    newTodos.splice(atIndex,0,{
-      id:id,
-      content:"",
-      isCompleted: false,
-    })
-    setTodos(newTodos)
+  const {data, error, loading} = useQuery(GET_PROJECT, { variables: { id }})
+  const idTodo =()=>data.id;
+  const [
+    createTodo, { data: createTodoData, error: createTodoError }
+  ] = useMutation(CREATE_TODO, { refetchQueries: GET_PROJECT });
+
+  useEffect(() => {
+    if (error) {
+      console.log(error);
+      alert('Error fetching project');
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (data) {
+      setProject(data.getTaskList);
+      setTitle(data.getTaskList.title);
+    }
+  }, [data]);
+
+  if (!project) {
+    return null;
   }
+
+  const NewToDo = () => {
+    navegation.navigate("NewToDo", { id:project.id });
+  }
+
 
 
   return (
     <><View style={styles.container}>
-      <TextInput
-        value={title}
-        onChangeText={setTitle}
-        style={styles.title}
-        placeholder={"Titulo Aquí"}>
-      </TextInput>
-
-      <FlatList
-        data={todos}
-        renderItem={({ item, index }) => <ToDoItem todo={item} onSumbit={() => createNewItem(index + 1)} />}
-        style={{
-          width: "100%"
-        }} />
-    </View>
-    <View>
-    <Pressable
+      <Pressable
       onPress={logOut} 
       style={{
         backgroundColor:'#004080',
         height:50,
         borderRadius:5,
-        alignItems:'center',
+        alignItems:"center",
         justifyContent:"center",
-        marginTop:30,
-        width:'10%',
-        marginHorizontal:"5%",
+        marginHorizontal:"85%",
+        width:'15%',
+        position:"absolute"
+
       }}>  
       <Text
         style={{
@@ -83,6 +108,26 @@ export default function ToDoScreen() {
           Cerrar Sesión
         </Text>
       </Pressable>
+      <TextInput
+        value={title}
+        onChangeText={setTitle}
+        style={styles.title}
+        placeholder={"Titulo Aquí"}>
+      </TextInput>
+
+      <FlatList
+      
+        data={project.todos}
+        renderItem={({ item, index }) => <ToDoItem todo={item}/>}
+        style={{
+          width: "100%"
+        }} />
+    </View>
+    <View>
+    <Pressable onPress={NewToDo}
+    style={{
+      marginHorizontal:"25%"
+    }}><AntDesign name="addfile" size={24} color="white"/></Pressable>
 
       </View></>
   );

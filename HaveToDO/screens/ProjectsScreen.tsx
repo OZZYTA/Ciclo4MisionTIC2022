@@ -6,12 +6,15 @@ import { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, gql } from '@apollo/client';
+import alert from '../components/Alert';
+import { AntDesign } from '@expo/vector-icons';
 
 const MY_PROJECTS = gql`
 query MyTaskLists {
   myTaskLists {
   id
   title 
+  createdAt
   users {
     id
     nombre
@@ -23,10 +26,13 @@ query MyTaskLists {
 export default function ProjectsScreen() {
   const navegation= useNavigation();
   const logOut = async () => {
-    await AsyncStorage.getItem('token');
+    await AsyncStorage.removeItem('token');
     navegation.navigate("SignIn")
   }
 
+  const newProyect = async () =>{
+    navegation.navigate("NewProject")
+  }
 
   const [project, setProjects] = useState([]);
 
@@ -34,7 +40,7 @@ export default function ProjectsScreen() {
 
   useEffect(() => {
     if (error) {
-      Alert.alert('Error fetching projects', error.message);
+      alert("Error Cargando los proyectos. Intenta de Nuevo")
     }
   }, [error]);
 
@@ -48,14 +54,36 @@ export default function ProjectsScreen() {
 
   return (
     <View style={styles.container}>
+      <Pressable
+      onPress={logOut} 
+      style={{
+        backgroundColor:'#004080',
+        height:50,
+        borderRadius:5,
+        alignItems:"center",
+        justifyContent:"center",
+        marginHorizontal:"85%",
+        width:'15%',
+        position:"absolute"
+
+      }}>  
+      <Text
+        style={{
+          color:"white",
+          fontSize:18,
+          fontWeight:"bold"
+        }}>
+          Cerrar Sesión
+        </Text>
+      </Pressable>
       <Text style={styles.title}>LISTA DE TAREAS/PROYECTOS</Text>
       <FlatList
         data={project}
-        renderItem={({item}) => <ProjectItem project={item} />}
+        renderItem={({item}) => <><ProjectItem project={item} /></>}
         style={{ width: '100%' }}
       />
-      <Pressable
-      onPress={logOut} 
+       <Pressable
+      onPress={newProyect} 
       style={{
         backgroundColor:'#004080',
         height:50,
@@ -72,9 +100,10 @@ export default function ProjectsScreen() {
           fontSize:18,
           fontWeight:"bold"
         }}>
-          Cerrar Sesión
+          Insertar Nuevo Proyecto
         </Text>
       </Pressable>
+      
     </View>
 
     

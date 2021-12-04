@@ -149,6 +149,12 @@ updateToDo: async (_, data, {db, user})=>{
                         })
   return await db.collection("ToDo").findOne({_id:ObjectId(data.id)});
 },
+deleteToDo : async(_, {id}, {db, user}) =>{   //Eliminar una tarea, mutacion pide el id de la tarea a eliminar
+  if(!user){console.log("No esta autenticado, por favor inicie sesión.")}  //Solo usuarios correctamente logueados lo pueden hacer
+  await db.collection("ToDo").remove({_id:ObjectId(id)}); //Se elimina la tarea que tiene el id ingresado en el imput
+  console.log("ToDo Eliminada Correctamente")
+  return true; //regresa booleano
+},
 
 
 
@@ -259,6 +265,7 @@ start();  //Arrancamos!
 
     createToDo(content:String!, taskListId:ID!):ToDo!
     updateToDo(id:ID!,content:String, isCompleted:Boolean):ToDo!
+    deleteToDo(id:ID!):Boolean!
   }
 
   input SignUpInput{

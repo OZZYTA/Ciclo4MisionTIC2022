@@ -30,7 +30,7 @@ const SignInScreen =() => {
 
   useEffect(() => {
     if (error) {
-      Alert.alert('Invalid credentials, try again');
+      alert("Credeciales equivocadas, por favor intente de nuevo")
     }
   }, [error])
 
