@@ -1,41 +1,63 @@
 import { useNavigation } from '@react-navigation/native';
 import * as React from 'react';
-import { useState } from 'react';
-import { Pressable, StyleSheet, TextInput } from 'react-native';
-import EditScreenInfo from '../components/EditScreenInfo';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, TextInput } from 'react-native';
 import { Text, View } from '../components/Themed';
-import { RootTabScreenProps } from '../types';
+import { useMutation, gql } from '@apollo/client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-/*import {useMutation, gql} from '@apollo/cliente',
-const SIGN_IN_MUTATION= gql`
-mutation SignIn($email:String!, $password:String!){
-  signUp(input:{email:$email, password:$password}){
+const SIGN_IN_MUTATION = gql`
+mutation singIn($mail:String!,$password:String!){
+  signIn(input: {
+    mail:$mail,
+    password:$password,
+  }) {
     token
-    user{
+    user {
       id
       nombre
-      email
     }
   }
-}
-*/
+  }
+`;
 
-export default function SignInScreen({ navigation }: RootTabScreenProps<'TabOne'>) {
-  const [email, setEmail]=useState("")
+const SignInScreen =() => {
+  const [mail, setMail]=useState("")
   const [password, setPassword]=useState("")
   const navegation= useNavigation();
 
- // const [singIn, {data, error, loading}]=useMutation(SIGN_IN_MUTATION)
+  const [signIn, { data, error, loading }] = useMutation(SIGN_IN_MUTATION);
+
+  useEffect(() => {
+    if (error) {
+      alert("Credeciales equivocadas, por favor intente de nuevo")
+    }
+  }, [error])
+
+  if (data) {
+    AsyncStorage.setItem('token', data.signIn.token)
+      .then(() => {
+        navegation.navigate("Home")
+      })
+  }
+
+  const onSubmit = () => {
+    signIn({ variables: { mail, password }})
+  }
 
   return (
     <View style={{padding:20}}>
-      {/*<Text>Log In</Text>*/}
+      <Text style={{
+          alignSelf:"center",
+          fontSize:25,
+          fontWeight:"bold"
+      }}>Inicio de Sesión</Text>
       <TextInput
       placeholder="Email Aqui!"
-      value={email}
-      onChangeText={setEmail}
+      value={mail}
+      onChangeText={setMail}
       style={{
-        color:"black",
+        color:"white",
         fontSize:18,
         marginVertical:25,
         width:'50%',
@@ -50,7 +72,7 @@ export default function SignInScreen({ navigation }: RootTabScreenProps<'TabOne'
     onChangeText={setPassword}
     secureTextEntry
     style={{
-      color:"black",
+      color:"white",
       fontSize:18,
       marginVertical:25,
       width:'50%',
@@ -59,7 +81,7 @@ export default function SignInScreen({ navigation }: RootTabScreenProps<'TabOne'
     />
 
 <Pressable
-//onPress={() =>  {console.warn('navigate'); navegation.navigate('SignUp')}}
+onPress={onSubmit} 
   style={{
     backgroundColor:'#004080',
     height:50,
@@ -82,6 +104,7 @@ export default function SignInScreen({ navigation }: RootTabScreenProps<'TabOne'
   </Pressable>
 
   <Pressable
+  onPress={() => navegation.navigate("SignUp")}
     style={{
       height:50,
       alignItems:"center",
@@ -90,6 +113,7 @@ export default function SignInScreen({ navigation }: RootTabScreenProps<'TabOne'
       width:'50%',
       marginHorizontal:"25%",
     }}>
+      {loading && <ActivityIndicator />}
         <Text
         style={{
           color:"#004080",
@@ -106,4 +130,4 @@ export default function SignInScreen({ navigation }: RootTabScreenProps<'TabOne'
   
 }
 
-//export default SignInScreen
+export default SignInScreen;

@@ -4,12 +4,13 @@ import { StyleSheet } from 'react-native';
 import EditScreenInfo from '../components/EditScreenInfo';
 import { Text, View } from '../components/Themed';
 
-export default function TabTwoScreen() {
+export default function InformationScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab Two</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="/screens/TabTwoScreen.tsx" />
+      <Text style={styles.title}>Información</Text>
+      <Text>Somos el Grupo 16,17 y 18 del Ciclo 4A</Text>
+      <Text>Programación web</Text>
+      <Text>MisiónTIC 2022</Text>
     </View>
   );
 }
