@@ -1,68 +1,112 @@
 import * as React from 'react';
-import { FlatList, Pressable, StyleSheet } from 'react-native';
+import { Alert, FlatList, Pressable, StyleSheet } from 'react-native';
 import ProjectItem from '../components/ProjectItem';
 import { Text, View } from '../components/Themed';
-import { useState } from 'react';
-import { whileStatement } from '@babel/types';
+import { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage'; //MUY IMPORTANTE
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useQuery, gql } from '@apollo/client';
+import alert from '../components/Alert';
 
+const MY_PROJECTS = gql`
+query MyTaskLists {
+  myTaskLists {
+  id
+  title 
+  createdAt
+  users {
+    id
+    nombre
+  } 
+  }
+}
+`;
 
 export default function ProjectsScreen() {
-  const navegation=useNavigation();
-  const logOut = async () =>{
+  const navegation= useNavigation();
+  const logOut = async () => {
     await AsyncStorage.removeItem('token');
-    navegation.navigate("SignIn");
+    navegation.navigate("SignIn")
   }
 
-  const [project, setProject]=useState([{
-    id: '1',
-    title: "Instalar Expo",
-    createdAt: "2021-12-01"
-  },{
-    id: '1',
-    title: "Diseñar Screens",
-    createdAt: "2021-12-01"
-  },{
-    id: '1',
-    title: "Auth",
-    createdAt: "2021-12-02"
-  },{
-    id: '1',
-    title: "Despliegue",
-    createdAt: "2021-12-02"
-  }])
+  const newProyect = async () =>{
+    //navegation.navigate("NewProject")
+  }
 
+  const [project, setProjects] = useState([]);
+
+  const { data, error, loading } = useQuery(MY_PROJECTS)
+
+  useEffect(() => {
+    if (error) {
+      alert("Error Cargando los proyectos. Intenta de Nuevo")
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (data) {
+      setProjects(data.myTaskLists);
+    }
+  }, [data]);
 
 
 
   return (
     <View style={styles.container}>
+      <Pressable
+      onPress={logOut} 
+      style={{
+        backgroundColor:'#004080',
+        height:50,
+        borderRadius:5,
+        alignItems:"center",
+        justifyContent:"center",
+        marginHorizontal:"85%",
+        width:'15%',
+        position:"absolute"
+
+      }}>  
+      <Text
+        style={{
+          color:"white",
+          fontSize:18,
+          fontWeight:"bold"
+        }}>
+          Cerrar Sesión
+        </Text>
+      </Pressable>
       <Text style={styles.title}>LISTA DE TAREAS/PROYECTOS</Text>
       <FlatList
         data={project}
-        renderItem={({item}) => <ProjectItem project={item} />}
+        renderItem={({item}) => <><ProjectItem project={item} /></>}
         style={{ width: '100%' }}
       />
-      <Pressable
-      onPress={logOut}
+       <Pressable
+      onPress={newProyect} 
       style={{
-        backgroundColor:"#004080",
+        backgroundColor:'#004080',
         height:50,
         borderRadius:5,
+        alignItems:'center',
         justifyContent:"center",
-        alignItems:"center",
         marginTop:30,
-        width:"20%",
-        marginHorizontal:"5%"
-      }}><Text
-          style={{
-            color:"white",
-            fontSize:18,
-            fontWeight:"bold"
-          }}>Cerrar Sesión</Text>
+        width:'20%',
+        marginHorizontal:"5%",
+      }}>  
+      <Text
+        style={{
+          color:"white",
+          fontSize:18,
+          fontWeight:"bold"
+        }}>
+          Insertar Nuevo Proyecto
+        </Text>
       </Pressable>
+      
     </View>
+
+    
+
   );
 }
 const styles = StyleSheet.create({
