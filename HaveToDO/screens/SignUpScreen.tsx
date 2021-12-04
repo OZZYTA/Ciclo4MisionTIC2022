@@ -1,34 +1,71 @@
 import { useNavigation } from '@react-navigation/native';
 import * as React from 'react';
 import { useState } from 'react';
-import { Pressable, TextInput } from 'react-native';
+import { Pressable, TextInput, Picker, Alert, ActivityIndicator } from 'react-native';
 import { Text, View } from '../components/Themed';
+import { useMutation, gql } from '@apollo/client';
+import AsyncStorage from '@react-native-async-storage/async-storage'; //MUY IMPORTANTE
+import alert from '../components/Alert';
 
-/*import {useMutation, gql} from '@apollo/cliente',
-const SIGN_IN_MUTATION= gql`
-mutation SignIn($email:String!, $password:String!){
-  signUp(input:{email:$email, password:$password}){
-    token
-    user{
-      id
-      nombre
-      email
-    }
-  }
+
+const SIGN_UP_MUTATION= gql`
+mutation singUp($mail: String!,
+  $identificacion: String!,
+  $nombre: String!,
+  $password: String!,
+  $rol: String!){
+    signUp( input: {
+mail:$mail,
+password:$password,
+nombre:$nombre,
+identificacion:$identificacion,
+rol:$rol
+}) {
+token
+user {
+  id
+  nombre
 }
-*/
+}
+}
+`;
 
 const SignUpScreen =() => {
-  const [email, setEmail]=useState("")
-  const [name, setName]=useState("")
+  const [mail, setMail]=useState("")
+  const [identificacion, setIdentificacion]=useState("")
+  const [nombre, setNombre]=useState("")
   const [password, setPassword]=useState("")
+  const [rol, setRol]=useState("Estudiante")
   const navegation= useNavigation();
 
-  const onSubmit = () =>{
-//On submit
+
+  const [signUp, { data, error, loading }] = useMutation(SIGN_UP_MUTATION);
+  if (error) {
+    Alert.alert('Error registrandose, por favor intente de nuevo')
   }
 
- // const [singIn, {data, error, loading}]=useMutation(SIGN_IN_MUTATION)
+  {/*if (data){
+    AsyncStorage.setItem("token",data.signUp.token)
+    .then(()=>{
+      AsyncStorage.setItem("rol",data.signUp.user.rol)
+      if (data.signUp.user.rol=="Estudiante"){
+        navegation.navigate("Home")
+      }
+    })
+  }*/}
+
+  if (data) {
+    AsyncStorage.setItem('token', data.signUp.token)
+      .then(() => {
+        alert("Gracias por registrase.")
+        navegation.navigate("Home");
+      })
+  }
+
+  const onSubmit = () =>{
+    signUp({variables: {mail,identificacion, nombre,password,rol}})
+  }
+
 
   return (
     <View style={{padding:20}}>
@@ -39,25 +76,36 @@ const SignUpScreen =() => {
       }}>Registro en HaveToDO</Text>
     <TextInput
     placeholder="Nombre Completo"
-    value={name}
-    onChangeText={setName}
-    secureTextEntry
+    value={nombre}
+    onChangeText={setNombre}
     style={{
-      color:"black",
+      color:"white",
       fontSize:18,
       marginVertical:25,
       width:'50%',
       marginHorizontal:"25%"
     }}
     />
-
+      <TextInput
+      placeholder="Identificación"
+      value={identificacion}
+      onChangeText={setIdentificacion}
+      style={{
+        color:"white",
+        fontSize:18,
+        marginVertical:25,
+        width:'50%',
+        marginHorizontal:"25%"
+      }}
+    
+    />
 
       <TextInput
       placeholder="Email Aqui!"
-      value={email}
-      onChangeText={setEmail}
+      value={mail}
+      onChangeText={setMail}
       style={{
-        color:"black",
+        color:"white",
         fontSize:18,
         marginVertical:25,
         width:'50%',
@@ -72,13 +120,29 @@ const SignUpScreen =() => {
     onChangeText={setPassword}
     secureTextEntry
     style={{
-      color:"black",
+      color:"white",
       fontSize:18,
       marginVertical:25,
       width:'50%',
       marginHorizontal:"25%"
     }}
     />
+
+
+    <Picker
+        selectedValue={rol}
+        style={{
+      color:"black",
+      fontSize:18,
+      marginVertical:25,
+      width:'50%',
+      marginHorizontal:"25%"
+    }}
+    onValueChange={(itemValue, itemIndex) => setRol(itemValue)}>
+      <Picker.Item label="Estudiante" value="Estudiante"/>
+      <Picker.Item label="Lider" value="Lider"/>
+      <Picker.Item label="Administrador" value="Administrador"/>
+    </Picker>
 
 <Pressable
 onPress={onSubmit} 
@@ -93,6 +157,7 @@ onPress={onSubmit}
     marginHorizontal:"25%",
   }}
   >
+    {loading && <ActivityIndicator/>}
     <Text
       style={{
         color:"white",

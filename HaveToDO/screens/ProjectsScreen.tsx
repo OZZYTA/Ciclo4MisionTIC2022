@@ -1,10 +1,20 @@
 import * as React from 'react';
-import { FlatList, StyleSheet } from 'react-native';
+import { FlatList, Pressable, StyleSheet } from 'react-native';
 import ProjectItem from '../components/ProjectItem';
 import { Text, View } from '../components/Themed';
 import { useState } from 'react';
+import { whileStatement } from '@babel/types';
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage'; //MUY IMPORTANTE
+
 
 export default function ProjectsScreen() {
+  const navegation=useNavigation();
+  const logOut = async () =>{
+    await AsyncStorage.removeItem('token');
+    navegation.navigate("SignIn");
+  }
+
   const [project, setProject]=useState([{
     id: '1',
     title: "Instalar Expo",
@@ -34,6 +44,24 @@ export default function ProjectsScreen() {
         renderItem={({item}) => <ProjectItem project={item} />}
         style={{ width: '100%' }}
       />
+      <Pressable
+      onPress={logOut}
+      style={{
+        backgroundColor:"#004080",
+        height:50,
+        borderRadius:5,
+        justifyContent:"center",
+        alignItems:"center",
+        marginTop:30,
+        width:"20%",
+        marginHorizontal:"5%"
+      }}><Text
+          style={{
+            color:"white",
+            fontSize:18,
+            fontWeight:"bold"
+          }}>Cerrar Sesión</Text>
+      </Pressable>
     </View>
   );
 }

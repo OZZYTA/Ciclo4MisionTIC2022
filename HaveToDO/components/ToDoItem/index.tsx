@@ -1,7 +1,7 @@
 import React, { useState, useEffect , useRef} from "react";
 import {View, TextInput} from "react-native";
-import Checkbox from "../Checkbox";
 import alert from "../Alert";
+import Checkbox from "../Checkbox";
 
 interface ToDoItemProps{
   todo:{
@@ -67,7 +67,7 @@ const onKeyPress = ({ nativeEvent })=>{
         onSubmitEditing={onSumbit}
         blurOnSubmit
         onKeyPress={onKeyPress}
-        //numberOfLines={2}
+        numberOfLines={2}
       />
       </View>
     )

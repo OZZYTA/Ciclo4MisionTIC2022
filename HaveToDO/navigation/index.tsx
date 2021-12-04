@@ -3,7 +3,7 @@
  * https://reactnavigation.org/docs/getting-started
  *
  */
-import { Entypo, FontAwesome } from '@expo/vector-icons';
+import { Entypo, FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -42,7 +42,7 @@ function RootNavigator() {
   return (
     <Stack.Navigator>
       <Stack.Screen name="Splash" component={SplashScreen} />
-      <Stack.Screen name="Root" component={SplashScreen} options={{ headerShown: false }}/>
+      <Stack.Screen name="Root" component={BottomTabNavigator} options={{ headerShown: false }}/>
       <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
       <Stack.Screen name="Home" component={ProjectsScreen} />
       <Stack.Screen name="Projects" component={ProjectsScreen} />
@@ -84,7 +84,16 @@ function BottomTabNavigator() {
           tabBarIcon: ({ color }) => <Entypo name="info-with-circle" size={24} color="white" />,
         }}
       />
+      <BottomTab.Screen
+        name="TabThree"
+        component={InformationScreen}
+        options={{
+          title: 'Tab3',
+          tabBarIcon: ({ color }) => <MaterialIcons name="post-add" size={24} color="white" />,
+        }}
+      />
     </BottomTab.Navigator>
+    
   );
 }
 

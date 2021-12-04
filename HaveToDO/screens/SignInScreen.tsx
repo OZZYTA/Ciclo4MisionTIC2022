@@ -36,12 +36,13 @@ const SignInScreen =() => {
           fontSize:25,
           fontWeight:"bold"
       }}>Inicio de Sesión</Text>
+
       <TextInput
       placeholder="Email Aqui!"
       value={email}
       onChangeText={setEmail}
       style={{
-        color:"black",
+        color:"white",
         fontSize:18,
         marginVertical:25,
         width:'50%',
@@ -56,7 +57,7 @@ const SignInScreen =() => {
     onChangeText={setPassword}
     secureTextEntry
     style={{
-      color:"black",
+      color:"white",
       fontSize:18,
       marginVertical:25,
       width:'50%',
