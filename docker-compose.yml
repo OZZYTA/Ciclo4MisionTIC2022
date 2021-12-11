@@ -1,0 +1,20 @@
+version: "3"
+services:
+  api-client:
+    image: api-client
+    stdin_open:true
+    ports:
+    - "19006:19006"
+    networks:
+      - mern-app    
+  api-server:
+    image: api-server
+    ports:
+      -"4000:4000"
+    networks:
+      - mern-app
+  networks:
+    mern-app:
+      driver:bridge
+  volume:
+    notuse
