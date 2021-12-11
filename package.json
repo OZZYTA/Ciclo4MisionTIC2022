@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/index.js",
     "clear": "nodemon src/cleardata.js",
-    "start": "node src/index.js"
+    "start":"node src/index.js"
   },
   "keywords": [],
   "author": "",
